@@ -1,0 +1,27 @@
+{
+  "name": "kusama-monitoring",
+  "version": "0.1.0",
+  "description": "Monitor a list of given accounts and senses if an account runs out of funds (each one under his own configurable threshold)",
+  "scripts": {
+    "test": "jest",
+    "test:report": "npm run test -- --coverage",
+    "lint": "gts lint",
+    "clean": "gts clean",
+    "compile": "tsc",
+    "fix": "gts fix",
+    "prepare": "npm run compile",
+    "pretest": "npm run compile",
+    "posttest": "npm run lint"
+  },
+  "author": "Alexandru Placinta <placintaalexandru1@gmail.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.4.5",
+    "gts": "^5.0.0",
+    "jest": "^29.6.2",
+    "typescript": "~5.1.6"
+  },
+  "dependencies": {
+    "@polkadot/api": "^10.9.1"
+  }
+}
