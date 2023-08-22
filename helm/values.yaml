@@ -8,9 +8,9 @@ service:
 # Database config
 database:
   host: localhost,
-  port: 54321,
-  user: pg_user,
-  password: pg_password,
+  port: 5555,
+  user: user,
+  password: password,
   database: accounts,
   table: accounts
 
