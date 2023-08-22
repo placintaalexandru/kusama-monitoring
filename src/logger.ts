@@ -4,7 +4,7 @@ export class LoggerSingleton {
     private static instance: LoggerW3f;
 
     public static setInstance(level: string): void {
-        LoggerSingleton.instance = createLogger(level)
+        LoggerSingleton.instance = createLogger(level);
     }
 
     public static getInstance(level?: string): Logger {

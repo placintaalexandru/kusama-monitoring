@@ -2,7 +2,7 @@ import assert from 'assert';
 import {LoggerSingleton} from './logger';
 import {Option, Command} from 'commander';
 
-interface AccountThreshold {
+export interface AccountThreshold {
     id: string;
     threshold: number;
 }
@@ -47,6 +47,7 @@ export const startCommand = new Command('start')
     .addOption(
         new Option('-p, --service_port <port>', 'Port number')
             .env('SERVICE_PORT')
+            .default('9999')
             .argParser(validatePort)
     )
     .addOption(
