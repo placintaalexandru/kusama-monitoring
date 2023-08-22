@@ -1,5 +1,5 @@
-import { ApiPromise, WsProvider } from '@polkadot/api';
-import { LoggerSingleton, Logger } from './logger';
+import {ApiPromise, WsProvider} from '@polkadot/api';
+import {LoggerSingleton, Logger} from './logger';
 import {OptionValues} from 'commander';
 
 export class Client {
@@ -12,11 +12,13 @@ export class Client {
     }
 
     public async connect(): Promise<ApiPromise> {
-        this.api = await ApiPromise.create({provider: new WsProvider(this.endpoint)});
+        this.api = await ApiPromise.create({
+            provider: new WsProvider(this.endpoint),
+        });
         const [chain, nodeName, nodeVersion] = await Promise.all([
             this.api.rpc.system.chain(),
             this.api.rpc.system.name(),
-            this.api.rpc.system.version()
+            this.api.rpc.system.version(),
         ]);
         this.logger.info(
             `Client connected to chain ${chain} using ${nodeName} v${nodeVersion}`
