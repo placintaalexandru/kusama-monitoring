@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@polkadot/api": "^10.9.1",
-    "@w3f/logger": "^0.4.3"
+    "@w3f/logger": "^0.4.3",
+    "commander": "^11.0.0"
   }
 }

@@ -1,94 +1,96 @@
-import assert from "assert";
-import {LoggerSingleton} from "./logger";
+import assert from 'assert';
+import {LoggerSingleton} from './logger';
+import {Option, Command} from 'commander';
 
 interface AccountThreshold {
-    id: string,
-    threshold: number
+    id: string;
+    threshold: number;
 }
 
-interface PgCredentials {
-    host: string,
-    port: number,
-    user: string,
-    password: string,
-    database: string,
-    table: string
-}
+const logger = LoggerSingleton.getInstance();
 
-interface ServiceConfig {
-    logLevel: string,
-    port: number,
-    endPoint: string
-}
-
-interface WatcherConfig {
-    serviceConfig: ServiceConfig,
-    dbConfig: PgCredentials,
-    accounts: Array<AccountThreshold>,
-}
-
-const logger = LoggerSingleton.getInstance()
-
-const parseDBConfig = () => {
-    const env = process.env;
-    const port = parseInt(env.DB_PORT || "", 10);
-
-    assert(port > 0, `"DB_PORT" invalid. "${env.DB_PORT}" could not be parsed. Got: ${port}`);
-    assert(env.DB_HOST, `"DB_HOST" must be specified`);
-    assert(env.DB_USER, `"DB_USER" must be specified`);
-    assert(env.DB_DATABASE, `"DB_DATABASE" must be specified`);
-    assert(env.DB_TABLE, `"DB_TABLE" must be specified`);
-
-    return <PgCredentials> {
-        host: env.DB_HOST,
-        port: port,
-        user: env.DB_USER,
-        password: env.DB_PASSWORD || "",
-        database: env.DB_DATABASE,
-        table: env.DB_TABLE
-    }
-}
-
-const parseServiceConfig = () => {
-    const env = process.env;
-
-    const port = parseInt(env.SERVICE_PORT || "", 10);
-    assert(port > 0, `"SERVICE_PORT" "${env.SERVICE_PORT}" could not be parsed. Got: ${port}`);
-
-    const endPoint = env.ENDPOINT || "";
-    assert(endPoint.length > 0, `"ENDPOINT" ${env.ENDPOINT} is not valid. Got ${endPoint}`);
-
-    return <ServiceConfig> {
-        logLevel: env.LOG_LEVEL || "INFO",
-        port: port,
-        endPoint: endPoint
-    }
-}
-
-const parseAccountsConfig = () => {
-    const env = process.env;
-    const rawAccounts: AccountThreshold[] = JSON.parse(env.ACCOUNTS || "[]");
+const parseAccounts = (argValue: string) => {
+    const rawAccounts: AccountThreshold[] = JSON.parse(argValue);
     const accounts: AccountThreshold[] = [];
 
-    rawAccounts.forEach((account) => {
+    rawAccounts.forEach(account => {
         if (account.threshold <= 0) {
-            logger.error(`Expected positive threshold for account ${account.id}. Got: ${account.threshold}`);
+            logger.error(
+                `Expected positive threshold for account ${account.id}. Got: ${account.threshold}`
+            );
         } else {
             accounts.push(account);
         }
     });
 
     if (accounts.length === 0) {
-        logger.warn("No account is being monitored");
+        logger.warn('No account is being monitored');
     }
 
-    return accounts
-}
-
-export const loadConfig = ()  => {
-    return <WatcherConfig> {
-        serviceConfig: parseServiceConfig(),
-        dbConfig: parseDBConfig(),
-        accounts: parseAccountsConfig()
-    }
+    return accounts;
 };
+
+const validatePort = (argValue: string) => {
+    const port = parseInt(argValue, 10);
+    assert(port > 0, `Invalid port number ${port}`);
+    return port;
+};
+
+export const startCommand = new Command('start')
+    .description('Starts the watcher')
+    .allowUnknownOption(false)
+    .addOption(
+        new Option('-l, --logLevel <level>', 'Log level')
+            .default('INFO')
+            .env('LOG_LEVEL')
+    )
+    .addOption(
+        new Option('-p, --service_port <port>', 'Port number')
+            .env('SERVICE_PORT')
+            .argParser(validatePort)
+    )
+    .addOption(
+        new Option('-e, --endpoint <endpoint>', 'Chain used')
+            .env('ENDPOINT')
+            .makeOptionMandatory(true)
+    )
+    .addOption(
+        new Option('--pg_host [host]', 'Address of the PostgreSQL database')
+            .env('PG_HOST')
+            .default('localhost')
+    )
+    .addOption(
+        new Option('--pg_port [port]', 'Port of the PostgreSQL database')
+            .env('PG_PORT')
+            .default('5555')
+            .argParser(validatePort)
+    )
+    .addOption(
+        new Option('--pg_user [user]', 'User of the PostgreSQL database')
+            .env('PG_USER')
+            .makeOptionMandatory(true)
+    )
+    .addOption(
+        new Option('--pg_password [password]', 'Password for the user')
+            .env('PG_PASSWORD')
+            .makeOptionMandatory(true)
+    )
+    .addOption(
+        new Option('--pg_database [database]', 'Name of the database')
+            .env('PG_DATABASE')
+            .makeOptionMandatory(true)
+    )
+    .addOption(
+        new Option('--pg_table [table]', 'Name of the table')
+            .env('PG_TABLE')
+            .makeOptionMandatory(true)
+    )
+    .addOption(
+        new Option(
+            '--accounts [accounts]',
+            'Accounts to monitor as JSON string'
+        )
+            .env('ACCOUNTS')
+            .makeOptionMandatory(true)
+            .argParser(parseAccounts)
+    );
