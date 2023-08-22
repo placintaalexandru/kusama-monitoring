@@ -1,0 +1,18 @@
+
+# Service config
+service:
+  logLevel: INFO,
+  port: 6868
+  endpoint: wss://kusama-rpc.polkadot.io
+
+# Database config
+database:
+  host: localhost,
+  port: 54321,
+  user: pg_user,
+  password: pg_password,
+  database: accounts,
+  table: accounts
+
+# Accounts to monitor: JSON string
+accounts: "[]"

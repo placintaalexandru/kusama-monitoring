@@ -22,6 +22,7 @@
     "typescript": "~5.1.6"
   },
   "dependencies": {
-    "@polkadot/api": "^10.9.1"
+    "@polkadot/api": "^10.9.1",
+    "@w3f/logger": "^0.4.3"
   }
 }
