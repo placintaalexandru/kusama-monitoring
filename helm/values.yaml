@@ -3,7 +3,7 @@
 service:
   logLevel: INFO,
   port: 6868
-  endpoint: wss://kusama-rpc.polkadot.io
+  endpoint: wss://westend-rpc.polkadot.io # wss://kusama-rpc.polkadot.io
 
 # Database config
 database:

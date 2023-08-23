@@ -1,12 +1,12 @@
 import {startCommand} from './args';
 import {LoggerSingleton} from './logger';
-import {startServer} from './server';
+import {Server} from './server';
 
 async function main() {
     startCommand
         .action(async options => {
             LoggerSingleton.setInstance(options.logLevel);
-            await startServer(options);
+            await new Server().connect(options);
         })
         .parse(process.argv);
 }
