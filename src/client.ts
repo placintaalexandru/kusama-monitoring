@@ -12,9 +12,16 @@ export class Client {
     }
 
     public async connect(): Promise<ApiPromise> {
-        this.api = await ApiPromise.create({
-            provider: new WsProvider(this.endpoint),
+        this.api = (
+            await ApiPromise.create({
+                provider: new WsProvider(this.endpoint),
+            })
+        ).on('error', err => {
+            throw err;
         });
+
+        await this.api.isReadyOrError;
+
         const [chain, nodeName, nodeVersion] = await Promise.all([
             this.api.rpc.system.chain(),
             this.api.rpc.system.name(),

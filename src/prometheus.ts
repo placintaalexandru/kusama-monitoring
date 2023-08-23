@@ -2,6 +2,11 @@ import * as promClient from 'prom-client';
 import {Logger, LoggerSingleton} from './logger';
 
 export interface PrometheusClient {
+    /**
+     * Sets the status (under or not the threshold)
+     * @param accountId Account
+     * @param status True if the account is under the threshold, false otherwise
+     */
     setStatus(accountId: string, status: boolean): void;
     setBalance(accountId: string, money: number): void;
 }

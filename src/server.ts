@@ -1,9 +1,12 @@
 import express from 'express';
 import {OptionValues} from 'commander';
-import {LoggerSingleton} from './logger';
+import {Logger, LoggerSingleton} from './logger';
 import {register} from 'prom-client';
 import {Client} from './client';
 import {Prometheus} from './prometheus';
+import {ApiPromise} from '@polkadot/api';
+import * as http from 'http';
+import {Listener} from './listener';
 
 const health = async (_: express.Request, res: express.Response) => {
     res.status(200).send('OK!');
@@ -14,17 +17,51 @@ const metrics = async (_req: express.Request, res: express.Response) => {
     res.end(await register.metrics());
 };
 
-export const startServer = async (opts: OptionValues) => {
-    const logger = LoggerSingleton.getInstance();
-    const server = express().get('/health', health).get('/metrics', metrics);
+export class Server {
+    private api: ApiPromise | undefined;
+    private server: http.Server | undefined;
+    private readonly prometheus: Prometheus;
+    private readonly logger: Logger;
 
-    server.listen(opts.service_port);
-    logger.info(`Server started on port ${opts.service_port}`);
+    constructor() {
+        this.logger = LoggerSingleton.getInstance();
+        this.prometheus = new Prometheus();
+    }
 
-    const api = await new Client(opts).connect();
+    public async connect(opts: OptionValues): Promise<Server> {
+        await new Client(opts).connect().then(async api => {
+            this.api = api;
 
-    const promClient = new Prometheus();
-    promClient.startCollection();
+            this.server = express()
+                .get('/health', health)
+                .get('/metrics', metrics)
+                .listen(opts.service_port)
+                .on('error', err => {
+                    throw err;
+                });
 
-    return server;
-};
+            this.logger.info(`Server started on port ${opts.service_port}`);
+
+            await new Listener(this.api, this.prometheus).subscribe(
+                opts.accounts
+            );
+            this.prometheus.startCollection();
+        });
+
+        return this;
+    }
+
+    public async disconnect() {
+        this.server?.close(async err => {
+            this.logger.info('Server shutting down');
+
+            if (err) {
+                this.logger.error(err.toString());
+            }
+
+            await this.api?.disconnect().then(() => {
+                this.logger.info('API disconnected');
+            });
+        });
+    }
+}
