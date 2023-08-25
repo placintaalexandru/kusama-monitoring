@@ -7,6 +7,7 @@ import {Prometheus} from './prometheus';
 import {ApiPromise} from '@polkadot/api';
 import * as http from 'http';
 import {Listener} from './listener';
+import {PgClient} from './db';
 
 const health = async (_: express.Request, res: express.Response) => {
     res.status(200).send('OK!');
@@ -41,11 +42,11 @@ export class Server {
                 });
 
             this.logger.info(`Server started on port ${opts.service_port}`);
+            this.prometheus.startCollection();
 
-            await new Listener(this.api, this.prometheus).subscribe(
+            await new Listener(this.api, this.prometheus, new PgClient(opts)).subscribe(
                 opts.accounts
             );
-            this.prometheus.startCollection();
         });
 
         return this;
