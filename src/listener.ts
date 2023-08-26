@@ -1,21 +1,24 @@
 import {ApiPromise} from '@polkadot/api';
 import {AccountThreshold} from './args';
-import {Prometheus} from './prometheus';
 import {Logger, LoggerSingleton} from './logger';
 import {formatBalance} from '@polkadot/util';
-import {DatabaseClient} from "./db";
+import {DatabaseClient, PrometheusClient} from './types';
 
 export class Listener {
     private readonly api: ApiPromise;
-    private readonly prometheus: Prometheus;
+    private readonly prometheus: PrometheusClient;
     private readonly logger: Logger;
     private readonly client: DatabaseClient;
 
-    constructor(api: ApiPromise, prometheus: Prometheus, dbClient: DatabaseClient) {
-        this.api = api;
+    constructor(
+        api: ApiPromise,
+        prometheus: PrometheusClient,
+        dbClient: DatabaseClient
+    ) {
         this.prometheus = prometheus;
         this.logger = LoggerSingleton.getInstance();
         this.client = dbClient;
+        this.api = api;
     }
 
     public async subscribe(accounts: AccountThreshold[]) {
@@ -35,19 +38,25 @@ export class Listener {
                             const t = parseInt(timestamp.toString(), 10);
                             await this.client.setStatus(account.id, t);
                         } catch (err: any) {
-                            this.logger.error(`Error updating status in database: ${err.toString()}`);
+                            this.logger.error(
+                                `Error updating status in database: ${err.toString()}`
+                            );
                         }
                     }
 
-                    this.prometheus.setStatus(
-                        account.id,
-                        status
-                    );
+                    this.prometheus.setStatus(account.id, status);
                     this.prometheus.setBalance(account.id, readableBalance);
 
                     this.logger.info(`Subscribed to account ${account.id}`);
                 }
             );
+        });
+    }
+
+    public async disconnect() {
+        await this.api.disconnect();
+        await this.client.end().then(() => {
+            this.logger.info('Database connection closed');
         });
     }
 }
