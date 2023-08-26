@@ -4,7 +4,6 @@ import {Logger, LoggerSingleton} from './logger';
 import {register} from 'prom-client';
 import {Client} from './client';
 import {Prometheus} from './prometheus';
-import {ApiPromise} from '@polkadot/api';
 import * as http from 'http';
 import {Listener} from './listener';
 import {PgClient} from './db';
@@ -19,20 +18,17 @@ const metrics = async (_req: express.Request, res: express.Response) => {
 };
 
 export class Server {
-    private api: ApiPromise | undefined;
     private server: http.Server | undefined;
-    private readonly prometheus: Prometheus;
+    private listener: Listener | undefined;
+
     private readonly logger: Logger;
 
     constructor() {
         this.logger = LoggerSingleton.getInstance();
-        this.prometheus = new Prometheus();
     }
 
     public async connect(opts: OptionValues): Promise<Server> {
         await new Client(opts).connect().then(async api => {
-            this.api = api;
-
             this.server = express()
                 .get('/health', health)
                 .get('/metrics', metrics)
@@ -42,27 +38,25 @@ export class Server {
                 });
 
             this.logger.info(`Server started on port ${opts.service_port}`);
-            this.prometheus.startCollection();
 
-            await new Listener(this.api, this.prometheus, new PgClient(opts)).subscribe(
-                opts.accounts
-            );
+            const prometheus = new Prometheus();
+            prometheus.startCollection();
+
+            this.listener = new Listener(api, prometheus, new PgClient(opts));
+            await this.listener.subscribe(opts.accounts);
         });
 
         return this;
     }
 
     public async disconnect() {
+        await this.listener?.disconnect();
         this.server?.close(async err => {
-            this.logger.info('Server shutting down');
-
             if (err) {
-                this.logger.error(err.toString());
+                throw err;
             }
-
-            await this.api?.disconnect().then(() => {
-                this.logger.info('API disconnected');
-            });
         });
+
+        this.logger.info('Server shut down');
     }
 }

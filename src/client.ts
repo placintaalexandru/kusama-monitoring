@@ -4,11 +4,13 @@ import {OptionValues} from 'commander';
 
 export class Client {
     private api: ApiPromise | undefined;
+
     private readonly endpoint: string;
-    private readonly logger: Logger = LoggerSingleton.getInstance();
+    private readonly logger: Logger;
 
     constructor(opts: OptionValues) {
         this.endpoint = opts.endpoint;
+        this.logger = LoggerSingleton.getInstance();
     }
 
     public async connect(): Promise<ApiPromise> {
@@ -16,11 +18,9 @@ export class Client {
             await ApiPromise.create({
                 provider: new WsProvider(this.endpoint),
             })
-        ).on('error', err => {
-            throw err;
+        ).on('disconnected', () => {
+            this.logger.info('API connection closed');
         });
-
-        await this.api.isReadyOrError;
 
         const [chain, nodeName, nodeVersion] = await Promise.all([
             this.api.rpc.system.chain(),

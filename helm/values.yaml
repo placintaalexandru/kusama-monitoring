@@ -8,11 +8,17 @@ service:
 # Database config
 database:
   host: localhost,
-  port: 5555,
-  user: user,
-  password: password,
+  port: 5432,
+  user: postgres,
+  password: postgres,
   database: accounts,
   table: accounts
 
 # Accounts to monitor: JSON string
-accounts: "[]"
+accounts: >-
+  "
+  [
+    {"id": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", "threshold": 1.2}, 
+    {"id": "5HWToYXcfJHg8kJzZgDuPtcUFJm7ftPWoaMT6e3QoAigwE1V", "threshold": 9.9842}
+  ]
+  "
