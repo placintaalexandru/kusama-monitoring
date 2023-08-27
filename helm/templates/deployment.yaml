@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "app.name" . }}
+  labels:
+    app: {{ include "app.name" . }}
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: {{ include "app.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "app.name" . }}
+    spec:
+      containers:
+        - name: watcher
+          image: {{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: Always
+          env:
+            - name: LOG_LEVEL
+              value: {{ .Values.service.logLevel | quote }}
+            - name: SERVICE_PORT
+              value: {{ .Values.service.port | quote }}
+            - name: ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                    name: {{ include "app.name" . }}
+                    key: endpoint
+            - name: ACCOUNTS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "app.name" . }}
+                  key: accounts
+            - name: PG_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "app.name" . }}
+                  key: database.host
+            - name: PG_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "app.name" . }}
+                  key: database.port
+            - name: PG_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "app.name" . }}
+                  key: database.user
+            - name: PG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "app.name" . }}
+                  key: database.password
+            - name: PG_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "app.name" . }}
+                  key: database.database
+            - name: PG_TABLE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "app.name" . }}
+                  key: database.table
+          ports:
+            - name: metrics
+              containerPort: {{ .Values.service.port }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 20
+            timeoutSeconds: 10
+          resources:
+          {{- toYaml .Values.resources | nindent 12 }}

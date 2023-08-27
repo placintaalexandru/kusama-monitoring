@@ -1,24 +1,80 @@
 
+nameOverride: ""
+
 # Service config
 service:
-  logLevel: INFO,
+  logLevel: info
   port: 6868
-  endpoint: wss://westend-rpc.polkadot.io # wss://kusama-rpc.polkadot.io
+  # https://wiki.polkadot.network/docs/maintain-endpoints
+  endpoint: wss://westend-rpc.polkadot.io
 
 # Database config
 database:
-  host: localhost,
-  port: 5432,
-  user: postgres,
-  password: postgres,
-  database: accounts,
+  host: postgres
+  port: 5432
+  user: postgres
+  password: postgres
+  database: accounts
   table: accounts
 
 # Accounts to monitor: JSON string
 accounts: >-
-  "
   [
-    {"id": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", "threshold": 1.2}, 
+    {"id": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", "threshold": 2.2}, 
     {"id": "5HWToYXcfJHg8kJzZgDuPtcUFJm7ftPWoaMT6e3QoAigwE1V", "threshold": 9.9842}
   ]
-  "
+
+image:
+  repo: alexandruplacinta/kusama-monitoring-watcher
+  tag: 0.1.0
+
+resources:
+  requests:
+    memory: 250Mi
+    cpu: 250m
+  limits:
+    memory: 500Mi
+    cpu: 500m
+
+kube-prometheus-stack:
+  prometheus:
+    prometheusSpec:
+      additionalScrapeConfigs:
+        - job_name: "watcher-metrics"
+          static_configs:
+            - targets:
+                - "watcher:6868"
+
+  grafana:
+    enabled: true
+    adminUser: admin
+    adminPassword: admin
+    forceDeployDatasources: false
+    forceDeployDashboards: false
+    defaultDashboardsTimezone: utc
+    serviceMonitor:
+      enabled: true
+
+postgresql:
+  fullnameOverride: postgres
+
+  global:
+    postgresql:
+      auth:
+        username: postgres
+        password: postgres
+        database: accounts
+
+  primary:
+    initdb:
+      scripts:
+        init.sql: |
+          SELECT 'CREATE DATABASE accounts'
+          WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'accounts'); \gexec
+
+          \c accounts;
+
+          CREATE TABLE IF NOT EXISTS accounts (
+            id text PRIMARY KEY,
+            event_time bigint
+          );
