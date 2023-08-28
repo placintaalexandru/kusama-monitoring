@@ -17,12 +17,10 @@ database:
   database: accounts
   table: accounts
 
-# Accounts to monitor: JSON string
-accounts: >-
-  [
-    {"id": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", "threshold": 2.2}, 
-    {"id": "5HWToYXcfJHg8kJzZgDuPtcUFJm7ftPWoaMT6e3QoAigwE1V", "threshold": 9.9842}
-  ]
+# Accounts to monitor
+accounts:
+  - id: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+    threshold: 2.2
 
 image:
   repo: alexandruplacinta/kusama-monitoring-watcher
