@@ -4,7 +4,7 @@ metadata:
   name: {{ include "app.name" . }}
 data:
   endpoint: {{ .Values.service.endpoint | quote }}
-  accounts: {{ .Values.accounts | quote }}
+  accounts: {{ .Values.accounts | toJson | quote }}
   database.host: {{ .Values.database.host | quote }}
   database.port: {{ .Values.database.port | quote }}
   database.database: {{ .Values.database.database | quote }}
