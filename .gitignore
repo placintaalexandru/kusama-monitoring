@@ -5,3 +5,6 @@
 /node_modules/
 
 /build
+
+# Postgres data when building using Docker compose
+/data
