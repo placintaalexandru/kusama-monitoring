@@ -3,6 +3,7 @@ import {AccountThreshold} from './args';
 import {Logger, LoggerSingleton} from './logger';
 import {formatBalance} from '@polkadot/util';
 import {DatabaseClient, PrometheusClient} from './types';
+import { AccountInfoWithTripleRefCount } from '@polkadot/types/interfaces/system';
 
 export class Listener {
     private readonly api: ApiPromise;
@@ -25,8 +26,7 @@ export class Listener {
         accounts.forEach(account => {
             this.api.query.system.account(
                 account.id,
-                // FrameSystemAccountInfo: {data: {free: currentFree}, nonce: _}
-                async (accountInfo: any) => {
+                async (accountInfo: AccountInfoWithTripleRefCount) => {
                     const readableBalance = parseFloat(
                         formatBalance(accountInfo.data.free, {withSi: false})
                     );
