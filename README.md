@@ -54,6 +54,7 @@ This deploys the following components:
 - the application itself
 - PostgreSQL database
 - Prometheus service monitor
+- Grafana dashboard called `Accounts`
 
 To set the accounts that are being monitored, set the `accounts` variable
 from the helm's `values.yaml` file and redeploy:
