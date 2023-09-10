@@ -36,12 +36,10 @@ resources:
 
 kube-prometheus-stack:
   prometheus:
-    prometheusSpec:
-      additionalScrapeConfigs:
-        - job_name: "watcher-metrics"
-          static_configs:
-            - targets:
-                - "watcher:6868"
+    enabled: true
+    agentMode: false
+    servicePerReplica:
+      port: 9090
 
   grafana:
     enabled: true

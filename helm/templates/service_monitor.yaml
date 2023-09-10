@@ -1,0 +1,17 @@
+{{- if index .Values "kube-prometheus-stack.prometheus.enabled" }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "app.name" . }}
+  labels:
+    release: {{ include "app.name" . }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ include "app.name" . }}
+  endpoints:
+    - port: "metrics"
+      interval: 30s
+      path: /metrics
+      scheme: http
+{{- end}}
