@@ -50,19 +50,15 @@ After deployment, the Postgres database data will be available on `./data` direc
 
 ### 2. Helm
 
-To deploy the application via helm run (**the template name is important as it
-is used in the prometheus scrape config**). This will deploy only with an account
-to be monitored:
-```sh
-helm install --name-template watcher ./helm
-```
+This deploys the following components:
+- the application itself
+- PostgreSQL database
+- Prometheus service monitor
 
-
-To tweak the accounts that are being monitored, set the `accounts` variable
+To set the accounts that are being monitored, set the `accounts` variable
 from the helm's `values.yaml` file and redeploy:
 ```sh
-helm install --name-template watcher ./helm \
---set
+helm install --name-template <RELEASE_NAME> ./helm \
 --set "accounts[0].id=<ID_0>,accounts[0].threshold=<THRESHOLD_0>" \
 --set "accounts[1].id=<ID_1>,accounts[1].threshold=<THRESHOLD_1>" \
 ...
