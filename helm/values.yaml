@@ -10,11 +10,6 @@ service:
 
 # Database config
 database:
-  host: postgres
-  port: 5432
-  user: postgres
-  password: postgres
-  database: accounts
   table: accounts
 
 # Accounts to monitor
@@ -52,25 +47,14 @@ kube-prometheus-stack:
       enabled: true
 
 postgresql:
-  fullnameOverride: postgres
+  fullnameOverride: ""
 
   global:
     postgresql:
       auth:
-        username: postgres
-        password: postgres
+        username: ""
+        password: ""
         database: accounts
 
-  primary:
     initdb:
-      scripts:
-        init.sql: |
-          SELECT 'CREATE DATABASE accounts'
-          WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'accounts'); \gexec
-
-          \c accounts;
-
-          CREATE TABLE IF NOT EXISTS accounts (
-            id text PRIMARY KEY,
-            event_time bigint
-          );
+      scriptsConfigMap: ""
