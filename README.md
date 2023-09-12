@@ -60,6 +60,21 @@ To set the accounts that are being monitored, set the `accounts` variable
 from the helm's `values.yaml` file and redeploy:
 ```sh
 helm install --name-template <RELEASE_NAME> ./helm \
+# Sets the postgres service name and other postgres related resources (default: postgres)
+--set postgresql.fullnameOverride=<POSTGRES_NAME> \
+# Sets the postgres service's port (default: 5432)
+--set postgresql.primary.service.ports.postgresql=<PORT> \
+# Sets the configmap with the tables to be loaded after postgres starts
+--set postgresql.primary.initdb.scriptsConfigMap=<POSTGRES_CONFIGMAP_NAME> \
+# Name of the database the previous configmap will create (default: accounts)
+--set postgresql.global.postgresql.auth.database=<DATABASE_NAME> \
+# Table, inside the database, that will be created (default: accounts)
+--set database.table=<TABLE_NAME> \
+# Sets the postgres username the app will use
+--set postgresql.global.postgresql.auth.username=<USER> \
+# Sets the postgres password associated with the previous username
+--set postgresql.global.postgresql.auth.password=<PASSWORD> \
+# Sets the list of accounts to be monitored
 --set "accounts[0].id=<ID_0>,accounts[0].threshold=<THRESHOLD_0>" \
 --set "accounts[1].id=<ID_1>,accounts[1].threshold=<THRESHOLD_1>" \
 ...
@@ -71,5 +86,5 @@ helm install --name-template <RELEASE_NAME> ./helm \
 1. Some events might not be recorded in the Postgres database at the beginning
 until the database and the table are created (need a readiness probe to detect
 when the database and table are created).
-2. Since the release name is fixed, the chart needs to be uninstalled before
-being reinstalled (**some secrets and configmap need to be manually removed**).
+2. Upon uninstallation, some k8s resources (e.g., secrets, configmaps and CRDs)
+need to be manually deleted.

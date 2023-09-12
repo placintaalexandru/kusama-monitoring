@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.postgresql.primary.initdb.scriptsConfigMap }}
+data:
+  db.sql: |-
+    SELECT 'CREATE DATABASE accounts'
+    WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'accounts');
+  table.sql: |-
+    \c {{ .Values.postgresql.global.postgresql.auth.database }};
+
+    CREATE TABLE IF NOT EXISTS {{ .Values.database.table }} (
+      id text PRIMARY KEY,
+      event_time bigint
+    );

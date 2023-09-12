@@ -5,7 +5,7 @@ metadata:
 data:
   endpoint: {{ .Values.service.endpoint | quote }}
   accounts: {{ .Values.accounts | toJson | quote }}
-  database.host: {{ .Values.database.host | quote }}
-  database.port: {{ .Values.database.port | quote }}
-  database.database: {{ .Values.database.database | quote }}
+  database.host: {{ .Values.postgresql.fullnameOverride | quote }}
+  database.port: {{ .Values.postgresql.primary.service.ports.postgresql | quote }}
+  database.database: {{ .Values.postgresql.global.postgresql.auth.database | quote }}
   database.table: {{ .Values.database.table | quote }}
