@@ -1,0 +1,23 @@
+{{- if index .Values "kube-prometheus-stack" "prometheus" "enabled" }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app: {{ include "app.name" . }}
+
+    # This is to use the selector of the default Prometheus CRD deployed without creating another resource
+    release: {{ include "app.name" . }}
+  name: {{ include "app.name" . }}
+spec:
+  groups:
+    - name: {{ include "app.name" . }}.rules
+      rules:
+        - alert: OutOfThreshold
+          annotations:
+            message: 'At least an account bellow threshold'
+          expr: sum(statuses) > 0
+          for: 2m
+          labels:
+            severity: info
+            origin: accounts
+{{ end }}
