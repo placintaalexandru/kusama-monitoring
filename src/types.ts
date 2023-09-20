@@ -23,6 +23,11 @@ export interface DatabaseClient {
     setStatus(accountId: string, timestamp: number): Promise<void>;
 
     /**
+     * Checks if the database is ready.
+     */
+    ready(): Promise<boolean>;
+
+    /**
      * Closes the connection.
      */
     end(): Promise<void>;

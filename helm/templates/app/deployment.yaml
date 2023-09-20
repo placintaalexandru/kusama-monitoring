@@ -69,11 +69,19 @@ spec:
           ports:
             - name: metrics
               containerPort: {{ .Values.service.port }}
+          startupProbe:
+            httpGet:
+              path: /readiness
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 1
           livenessProbe:
             httpGet:
               path: /health
               port: {{ .Values.service.port }}
             initialDelaySeconds: 20
             timeoutSeconds: 10
+            failureThreshold: 20
           resources:
           {{- toYaml .Values.resources | nindent 12 }}
