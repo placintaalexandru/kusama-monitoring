@@ -22,6 +22,26 @@ export class PgClient implements DatabaseClient {
         });
     }
 
+    async ready(): Promise<boolean> {
+        return this.pgPool.connect().then(async client => {
+            const result = await client.query(
+                `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '${this.table}'`
+            ).then(queryResult => {
+                return queryResult.rows.length === 1;
+            }).catch(err => {
+                this.logger.error(err.toString());
+                return false;
+            });
+
+            client.release();
+
+            return result;
+        }).catch(err => {
+            console.log(err.toString());
+            return false;
+        });
+    }
+
     async setStatus(accountId: string, timestamp: number) {
         const connection = await this.pgPool.connect();
 
