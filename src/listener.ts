@@ -1,15 +1,17 @@
 import {ApiPromise} from '@polkadot/api';
 import {AccountThreshold} from './args';
 import {Logger, LoggerSingleton} from './logger';
-import {formatBalance} from '@polkadot/util';
+import {BN} from '@polkadot/util';
 import {DatabaseClient, PrometheusClient} from './types';
 import { AccountInfoWithTripleRefCount } from '@polkadot/types/interfaces/system';
+import {parseBalance} from "./util";
 
 export class Listener {
     private readonly api: ApiPromise;
     private readonly prometheus: PrometheusClient;
     private readonly logger: Logger;
     private readonly client: DatabaseClient;
+    private readonly base: BN;
 
     constructor(
         api: ApiPromise,
@@ -20,6 +22,7 @@ export class Listener {
         this.logger = LoggerSingleton.getInstance();
         this.client = dbClient;
         this.api = api;
+        this.base = new BN(10).pow(new BN(this.api.registry.chainDecimals));
     }
 
     public async subscribe(accounts: AccountThreshold[]) {
@@ -27,9 +30,7 @@ export class Listener {
             this.api.query.system.account(
                 account.id,
                 async (accountInfo: AccountInfoWithTripleRefCount) => {
-                    const readableBalance = parseFloat(
-                        formatBalance(accountInfo.data.free, {withSi: false})
-                    );
+                    const readableBalance = parseBalance(accountInfo.data.free, this.base);
                     const status = readableBalance < account.threshold;
                     const timestamp = await this.api.query.timestamp.now();
 
